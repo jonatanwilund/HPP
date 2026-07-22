@@ -24,25 +24,62 @@ double get_wall_seconds(void);
 void populate_matrix(double *A, int N);
 
 /**
- * Perform naive matrix multiplication.
+ * Perform matrix addition.
  *
- * A, B    - input matrices in row-major order (size n*n)
- * C       - output matrix buffer (size n*n), owned by caller
- * N       - matrix dimension (must be a power of two)
- *
- * @return 0 on success, non-zero on error.
+ * @param A         - input matrix in row-major order (size NxN)
+ * @param B         - input matrix in row-major order (size NxN)
+ * @param C         - output matrix buffer (size NxN), owned by caller
+ * @param N         - matrix dimension
+ * @param stride    - memory stride for each row (equal to the original dimension of the multiplied matrices)
  */
-int naive_multiply(const double *A, const double *B, double *C, unsigned int N);
+void matrix_add(
+    const double *restrict A,
+    const double *restrict B,
+    double *restrict C,
+    unsigned int N,
+    unsigned int stride);
+
+/**
+ * Perform matrix subtraction.
+ *
+ * @param A  - input matrix in row-major order (size NxN)
+ * @param B  - input matrix in row-major order (size NxN)
+ * @param C  - output matrix buffer (size NxN), owned by caller
+ * @param N  - matrix dimension
+ * @param stride    - memory stride for each row (equal to the original dimension of the multiplied matrices)
+ */
+void matrix_subtract(
+    const double *restrict A,
+    const double *restrict B,
+    double *restrict C,
+    unsigned int N,
+    unsigned int stride);
+
+/**
+ * Perform naive matrix multiplication.
+*
+ * @param A  - input matrix in row-major order (size NxN)
+ * @param B  - input matrix in row-major order (size NxN)
+ * @param C  - output matrix buffer (size NxN), owned by caller
+ * @param N  - matrix dimension
+ */
+void naive_multiply(const double *restrict A, const double *restrict B, double *restrict C, unsigned int N);
 
 /**
  * Perform Strassen matrix multiplication.
  *
- * A, B    - input matrices in row-major order (size n*n)
- * C       - output matrix buffer (size n*n), owned by caller
- * n       - matrix dimension (must be a power of two)
- *
- * @return 0 on success, non-zero on error.
+*
+ * @param A       - input matrix in row-major order (size NxN)
+ * @param B       - input matrix in row-major order (size NxN)
+ * @param C       - output matrix buffer (size n*n), owned by caller
+ * @param N       - matrix dimension
+ * @param stride  - memory stride for each row (equal to the original dimension of the multiplied matrices)
  */
-int strassen_multiply(const double *A, const double *B, double *C, unsigned int N);
+void strassen_multiply(
+    const double *restrict A,
+    const double *restrict B,
+    double *restrict C,
+    unsigned int N,
+    unsigned int stride);
 
 #endif // HPP_STRASSEN_H
