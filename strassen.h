@@ -1,10 +1,3 @@
-/**
- * @file strassen.h
- * @brief Utilities and public API for Strassen matrix multiplication (skeleton).
- *
- * Keep implementation details in strassen.c. Document public contracts here.
- */
-
 #ifndef HPP_STRASSEN_H
 #define HPP_STRASSEN_H
 

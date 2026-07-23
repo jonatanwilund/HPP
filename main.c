@@ -4,15 +4,17 @@
 #include "strassen.h"
 
 unsigned short int CUTOFF = 1;
+unsigned short int MAX_RECURSION_DEPTH = 4;
 
 int main(int argc, char **argv) {
-    if (argc != 4) {
-        printf("Usage: %s <N> <N_cutoff> <n_threads>\n", argv[0]);
+    if (argc != 5) {
+        printf("Usage: %s <N> <N_cutoff> <max_recursion_depth> <n_threads>\n", argv[0]);
         return -1;
     }
     const unsigned int N = atoi(argv[1]);  // Matrix size
     CUTOFF = atoi(argv[2]);  // Size when the recursion should stop
-    const unsigned int n_threads = atoi(argv[3]);
+    MAX_RECURSION_DEPTH = atoi(argv[3]);  // Max number of recursion levels before stopping creating omp tasks
+    const unsigned int n_threads = atoi(argv[4]);
 
     if (N == 0 || (N & (N - 1)) != 0) {
         printf("Matrix size must be a power of two.\n");

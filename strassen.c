@@ -1,11 +1,9 @@
 #include <sys/time.h>
 #include "strassen.h"
-
 #include <stdlib.h>
 
-
 extern unsigned short int CUTOFF;
-
+extern unsigned short int MAX_RECURSION_DEPTH;
 
 double get_wall_seconds() {
     struct timeval tv;
@@ -13,7 +11,6 @@ double get_wall_seconds() {
     const double seconds = tv.tv_sec + (double) tv.tv_usec / 1000000;
     return seconds;
 }
-
 
 void populate_matrix(matrix A) {
     srand(10);
@@ -43,7 +40,6 @@ void matrix_add(matrix C, matrix A, matrix B) {
         }
     }
 }
-
 
 void matrix_subtract(matrix C, matrix A, matrix B) {
     const unsigned int N = A.N;
@@ -78,7 +74,6 @@ void assemble_matrix(
     }
 }
 
-
 void naive_multiply(matrix C, matrix A, matrix B) {
     const unsigned int N = A.N;
     double *restrict c_data = C.data;
@@ -99,7 +94,6 @@ void naive_multiply(matrix C, matrix A, matrix B) {
         }
     }
 }
-
 
 void strassen_multiply(matrix C, matrix A, matrix B) {
     // Use naive matrix multiplication if the CUTOFF is reached
@@ -203,13 +197,13 @@ void strassen_multiply(matrix C, matrix A, matrix B) {
         const double *restrict m4_data = M[3].data;
         const double *restrict m5_data = M[4].data;
         const double *restrict m7_data = M[6].data;
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < mid; i++) {
             double *restrict c11_row = c11_data + i * C11.tda;
             const double *restrict m1_row = m1_data + i * M[0].tda;
             const double *restrict m4_row = m4_data + i * M[3].tda;
             const double *restrict m5_row = m5_data + i * M[4].tda;
-            const double *restrict m7_row = m7_data + i * M[5].tda;
-            for (int j = 0; j < N; j++) {
+            const double *restrict m7_row = m7_data + i * M[6].tda;
+            for (int j = 0; j < mid; j++) {
                 c11_row[j] = m1_row[j] + m4_row[j] - m5_row[j] + m7_row[j];
             }
         }
@@ -219,7 +213,7 @@ void strassen_multiply(matrix C, matrix A, matrix B) {
     matrix_add(C12, M[2], M[4]);
 
 #pragma omp task depend(in: M[1], M[3]) depend(out: C21)
-    matrix_subtract(C21, M[1], M[3]);
+    matrix_add(C21, M[1], M[3]);
 
 #pragma omp task depend(in: M[0], M[1], M[2], M[5]) depend(out: C22)
     {
@@ -228,21 +222,19 @@ void strassen_multiply(matrix C, matrix A, matrix B) {
         const double *restrict m2_data = M[1].data;
         const double *restrict m3_data = M[2].data;
         const double *restrict m6_data = M[5].data;
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < mid; i++) {
             double *restrict c22_row = c22_data + i * C22.tda;
             const double *restrict m1_row = m1_data + i * M[0].tda;
             const double *restrict m2_row = m2_data + i * M[1].tda;
             const double *restrict m3_row = m3_data + i * M[2].tda;
             const double *restrict m6_row = m6_data + i * M[5].tda;
-            for (int j = 0; j < N; j++) {
+            for (int j = 0; j < mid; j++) {
                 c22_row[j] = m1_row[j] - m2_row[j] + m3_row[j] + m6_row[j];
             }
         }
     }
 
 #pragma omp taskwait
-
-    assemble_matrix(C, C11, C12, C21, C22);
 
     free(mem_block);
 }

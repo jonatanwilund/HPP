@@ -1,16 +1,21 @@
 CC = gcc
-CFLAGS = -Wall -O3 -march=native -ffast-math -funroll-loops -fopenmp
+CFLAGS = -Wall -Wextra -O3 -march=native -fopenmp
+
+.PHONY: all clean
 
 all: strassen_algorithm strassen_algorithm_old
 
-strassen_algorithm: strassen_algorithm.o
-	$(CC) $(CFLAGS) -o strassen_algorithm strassen_algorithm.o
+strassen_algorithm: main.o strassen.o
+	$(CC) $(CFLAGS) -o $@ $^
 
-strassen_algorithm.o: strassen_algorithm.c
-	$(CC) $(CFLAGS) -c strassen_algorithm.c
+main.o: main.c strassen.h
+	$(CC) $(CFLAGS) -c main.c
+
+strassen.o: strassen.c strassen.h
+	$(CC) $(CFLAGS) -c strassen.c
 
 strassen_algorithm_old: strassen_algorithm_old.o
-	$(CC) $(CFLAGS) -o strassen_algorithm_old strassen_algorithm_old.o
+	$(CC) $(CFLAGS) -o $@ $^
 
 strassen_algorithm_old.o: strassen_algorithm_old.c
 	$(CC) $(CFLAGS) -c strassen_algorithm_old.c
