@@ -10,8 +10,8 @@
 
 typedef struct matrix {
     double *data;  // Contiguous memory in row-major order
-    int N;  // Matrix dimension (NxN)
-    int tda;  // Leading dimension (stride) for each row
+    unsigned int N;  // Matrix dimension (NxN)
+    unsigned int tda;  // Leading dimension (stride) for each row
 } matrix;
 
 // Matrix element accessor macro
@@ -34,38 +34,54 @@ void populate_matrix(matrix A);
 /**
  * Perform matrix addition.
  *
- * @param A         - first matrix in addition, passed as a struct
- * @param B         - second matrix in addition, passed as a struct
- * @param C         - output matrix struct to store the result
+ * @param C         - output matrix descriptor
+ * @param A         - first matrix descriptor
+ * @param B         - second matrix descriptor
  */
-void matrix_add(const matrix *restrict A, const matrix *restrict B, matrix *restrict C);
+void matrix_add(matrix C, matrix A, matrix B);
 
 /**
  * Perform matrix subtraction.
  *
- * @param A  - first matrix in subtraction, passed as a struct
- * @param B  - second matrix in subtraction, passed as a struct
- * @param C  - output matrix struct to store the result
+ * @param C  - output matrix descriptor
+ * @param A  - first matrix descriptor
+ * @param B  - second matrix descriptor
  */
-void matrix_subtract(const matrix *restrict A, const matrix *restrict B, matrix *restrict C);
+void matrix_subtract(matrix C, matrix A, matrix B);
+
+/**
+ * Assemble matrix from sub-matrices.
+ *
+ * @param C     - output matrix struct to store the result
+ * @param C11   - top-left sub-matrix
+ * @param C12   - top-right sub-matrix
+ * @param C21   - bottom-left sub-matrix
+ * @param C22   - bottom-right sub-matrix
+ */
+void assemble_matrix(
+    matrix C,
+    matrix C11,
+    matrix C12,
+    matrix C21,
+    matrix C22);
 
 /**
  * Perform naive matrix multiplication.
  *
- * @param A  - first matrix struct to multiply
- * @param B  - second matrix struct to multiply
- * @param C  - output matrix struct to store the result
+ * @param C  - output matrix descriptor
+ * @param A  - first matrix descriptor
+ * @param B  - second matrix descriptor
  */
-void naive_multiply(const matrix *restrict A, const matrix *restrict B, matrix *restrict C);
+void naive_multiply(matrix C, matrix A, matrix B);
 
 /**
  * Perform Strassen matrix multiplication (recursively).
  *
 *
- * @param A       - first matrix struct to multiply
- * @param B       - second matrix struct to multiply
- * @param C       - output matrix struct to store the result
+ * @param C       - output matrix descriptor
+ * @param A       - first matrix descriptor
+ * @param B       - second matrix descriptor
  */
-void strassen_multiply(const matrix *restrict A, const matrix *restrict B, matrix *restrict C);
+void strassen_multiply(matrix C, matrix A, matrix B);
 
 #endif // HPP_STRASSEN_H

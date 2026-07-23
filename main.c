@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
 #include "strassen.h"
 
 unsigned short int CUTOFF = 1;
@@ -13,19 +14,43 @@ int main(int argc, char **argv) {
     CUTOFF = atoi(argv[2]);  // Size when the recursion should stop
     const unsigned int n_threads = atoi(argv[3]);
 
-    if ((N > 0) && ((N & (N - 1)) == 0)) {
+    if (N == 0 || (N & (N - 1)) != 0) {
         printf("Matrix size must be a power of two.\n");
         return -1;
     }
 
+    omp_set_num_threads(n_threads);
+
     // Allocate memory for A, B, and C
-    double *A = malloc((N * N) * sizeof(double));
-    double *B = malloc((N * N) * sizeof(double));
-    double *C = malloc((N * N) * sizeof(double));
+    double *A_data = malloc((N * N) * sizeof(double));
+    double *B_data = malloc((N * N) * sizeof(double));
+    double *C_data = malloc((N * N) * sizeof(double));
+
+    // Construct matrices to multiply
+    matrix A = { .data = A_data, .N = N, .tda = N };
+    matrix B = { .data = B_data, .N = N, .tda = N };
+    matrix C = { .data = C_data, .N = N, .tda = N };
+
+    populate_matrix(A);
+    populate_matrix(B);
+
+    double start_time = get_wall_seconds();
+
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            strassen_multiply(C, A, B);
+        }
+    }
+
+    double elapsed_time = get_wall_seconds() - start_time;
+
+    printf("N=%u, Threads=%u, Cutoff=%u, Time=%.4f s\n", N, n_threads, CUTOFF, elapsed_time);
 
     // Cleanup
-    free(A);
-    free(B);
-    free(C);
+    free(A_data);
+    free(B_data);
+    free(C_data);
     return 0;
 }
