@@ -13,7 +13,6 @@ int main(int argc, char **argv) {
     CUTOFF = atoi(argv[2]);  // Size when the recursion should stop
     const unsigned int n_threads = atoi(argv[3]);
 
-    //(x > 0) && ((x & (x - 1)) == 0)
     if ((N > 0) && ((N & (N - 1)) == 0)) {
         printf("Matrix size must be a power of two.\n");
         return -1;
