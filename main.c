@@ -42,13 +42,13 @@ int main(int argc, char **argv) {
     {
 #pragma omp single
         {
-            strassen_multiply(C, A, B);
+            strassen_multiply_recursive(C, A, B, 0);
         }
     }
 
     double elapsed_time = get_wall_seconds() - start_time;
 
-    printf("N=%u, Threads=%u, Cutoff=%u, Time=%.4f s\n", N, n_threads, CUTOFF, elapsed_time);
+    printf("N=%u, Threads=%u, Cutoff=%u, Max_Recursion_Depth=%u, Time=%.4f s\n", N, n_threads, CUTOFF, MAX_RECURSION_DEPTH, elapsed_time);
 
     // Cleanup
     free(A_data);

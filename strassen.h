@@ -74,7 +74,8 @@ void naive_multiply(matrix C, matrix A, matrix B);
  * @param C       - output matrix descriptor
  * @param A       - first matrix descriptor
  * @param B       - second matrix descriptor
+ * @param depth   - current recursion depth
  */
-void strassen_multiply(matrix C, matrix A, matrix B);
+void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int depth);
 
 #endif // HPP_STRASSEN_H
