@@ -13,19 +13,18 @@ double get_wall_seconds() {
 }
 
 void populate_matrix(matrix A) {
-    srand(10);
-    const double rand_max = 1;
-    const double rand_min = 0;
+    const double rand_max = 1.0;
+    const double rand_min = 0.0;
     const double rand_range = rand_max - rand_min;
     for (unsigned int i = 0; i < A.N; i++) {
         for (unsigned int j = 0; j < A.N; j++) {
-            matrix(A, i, j) = rand_min + rand_range * ((double) rand() / RAND_MAX);
+            unsigned int seed = i * A.N + j + 10;
+            matrix(A, i, j) = rand_min + rand_range * ((double) rand_r(&seed) / RAND_MAX);
         }
     }
 }
 
-// Test if the add and subtract functions are vectorized differently
-void matrix_add(matrix C, matrix A, matrix B) {
+void matrix_add(const matrix C, const matrix A, const matrix B) {
     const unsigned int N = A.N;
     double *restrict c_data = C.data;
     const double *restrict a_data = A.data;
@@ -41,7 +40,7 @@ void matrix_add(matrix C, matrix A, matrix B) {
     }
 }
 
-void matrix_subtract(matrix C, matrix A, matrix B) {
+void matrix_subtract(const matrix C, const matrix A, const matrix B) {
     const unsigned int N = A.N;
     double *restrict c_data = C.data;
     const double *restrict a_data = A.data;
@@ -57,24 +56,7 @@ void matrix_subtract(matrix C, matrix A, matrix B) {
     }
 }
 
-void assemble_matrix(
-    matrix C,
-    matrix C11,
-    matrix C12,
-    matrix C21,
-    matrix C22) {
-    const unsigned int mid = C11.N;
-    for (unsigned int i = 0; i < mid; i++) {
-        for (unsigned int j = 0; j < mid; j++) {
-            matrix(C, i, j) = matrix(C11, i, j);
-            matrix(C, i, j + mid) = matrix(C12, i, j);
-            matrix(C, i + mid, j) = matrix(C21, i, j);
-            matrix(C, i + mid, j + mid) = matrix(C22, i, j);
-        }
-    }
-}
-
-void naive_multiply(matrix C, matrix A, matrix B) {
+void naive_multiply(const matrix C, const matrix A, const matrix B) {
     const unsigned int N = A.N;
     double *restrict c_data = C.data;
     const double *restrict a_data = A.data;
@@ -95,7 +77,7 @@ void naive_multiply(matrix C, matrix A, matrix B) {
     }
 }
 
-void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int depth) {
+void strassen_multiply_recursive(const matrix C, const matrix A, const matrix B, const unsigned int depth) {
     // Use naive matrix multiplication if the CUTOFF is reached
     if (A.N <= CUTOFF) {
         naive_multiply(C, A, B);
@@ -117,10 +99,10 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
     const matrix B21 = { .data = B.data + mid * B.tda, .N = mid, .tda = B.tda };
     const matrix B22 = { .data = B.data + mid * B.tda + mid, .N = mid, .tda = B.tda };
 
-    matrix C11 = { .data = C.data, .N = mid, .tda = C.tda };
-    matrix C12 = { .data = C.data + mid, .N = mid, .tda = C.tda };
-    matrix C21 = { .data = C.data + mid * C.tda, .N = mid, .tda = C.tda };
-    matrix C22 = { .data = C.data + mid * C.tda + mid, .N = mid, .tda = C.tda };
+    const matrix C11 = { .data = C.data, .N = mid, .tda = C.tda };
+    const matrix C12 = { .data = C.data + mid, .N = mid, .tda = C.tda };
+    const matrix C21 = { .data = C.data + mid * C.tda, .N = mid, .tda = C.tda };
+    const matrix C22 = { .data = C.data + mid * C.tda + mid, .N = mid, .tda = C.tda };
 
     // Allocate one contiguous block of memory for all sub-problems
     double *mem_block = malloc(17 * num_sub_elements * sizeof(double));  // 7 mult. results, 10 add./subtr. results

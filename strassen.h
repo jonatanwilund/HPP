@@ -2,7 +2,7 @@
 #define HPP_STRASSEN_H
 
 typedef struct matrix {
-    double *data;  // Contiguous memory in row-major order
+    double *restrict data;  // Contiguous memory in row-major order
     unsigned int N;  // Matrix dimension (NxN)
     unsigned int tda;  // Leading dimension (stride) for each row
 } matrix;

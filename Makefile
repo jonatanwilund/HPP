@@ -1,14 +1,6 @@
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S), Darwin)
-    CC = gcc-15
-    CFLAGS = -Wall -Wextra -O3 -march=native -fopenmp -flax-vector-conversions
-    LDFLAGS = -framework Accelerate
-else
-    CC = gcc
-    CFLAGS = -Wall -Wextra -O3 -march=native -fopenmp
-    LDFLAGS = -lopenblas -lm
-endif
+CC = gcc
+CFLAGS = -Wall -Wextra -O3 -march=native -fopenmp -fopt-info-vec-optimized -fvariable-expansion-in-unroller
+LDFLAGS = -lopenblas -lm
 
 .PHONY: all clean
 
