@@ -4,16 +4,16 @@
 #include "strassen.h"
 
 unsigned short int CUTOFF = 1;
-unsigned short int MAX_RECURSION_DEPTH = 4;
+unsigned short int MAX_PARALLEL_DEPTH = 4;
 
 int main(int argc, char **argv) {
     if (argc != 5) {
-        printf("Usage: %s <N> <N_cutoff> <max_recursion_depth> <n_threads>\n", argv[0]);
+        printf("Usage: %s <N> <N_cutoff> <max_parallel_depth> <n_threads>\n", argv[0]);
         return -1;
     }
     const unsigned int N = atoi(argv[1]);  // Matrix size
     CUTOFF = atoi(argv[2]);  // Size when the recursion should stop
-    MAX_RECURSION_DEPTH = atoi(argv[3]);  // Max number of recursion levels before stopping creating omp tasks
+    MAX_PARALLEL_DEPTH = atoi(argv[3]);  // Max number of recursion levels before stopping creating omp tasks
     const unsigned int n_threads = atoi(argv[4]);
 
     if (N == 0 || (N & (N - 1)) != 0) {
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
     double elapsed_time = get_wall_seconds() - start_time;
 
-    printf("N=%u, Threads=%u, Cutoff=%u, Max_Recursion_Depth=%u, Time=%.4f s\n", N, n_threads, CUTOFF, MAX_RECURSION_DEPTH, elapsed_time);
+    printf("N=%u, Threads=%u, Cutoff=%u, Max_Parallel_Depth=%u, Time=%.8f s\n", N, n_threads, CUTOFF, MAX_PARALLEL_DEPTH, elapsed_time);
 
     // Cleanup
     free(A_data);

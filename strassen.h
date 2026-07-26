@@ -43,22 +43,6 @@ void matrix_add(matrix C, matrix A, matrix B);
 void matrix_subtract(matrix C, matrix A, matrix B);
 
 /**
- * Assemble matrix from sub-matrices.
- *
- * @param C     - output matrix struct to store the result
- * @param C11   - top-left sub-matrix
- * @param C12   - top-right sub-matrix
- * @param C21   - bottom-left sub-matrix
- * @param C22   - bottom-right sub-matrix
- */
-void assemble_matrix(
-    matrix C,
-    matrix C11,
-    matrix C12,
-    matrix C21,
-    matrix C22);
-
-/**
  * Perform naive matrix multiplication.
  *
  * @param C  - output matrix descriptor

@@ -3,20 +3,20 @@
 #include <stdlib.h>
 
 extern unsigned short int CUTOFF;
-extern unsigned short int MAX_RECURSION_DEPTH;
+extern unsigned short int MAX_PARALLEL_DEPTH;
 
 double get_wall_seconds() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    const double seconds = tv.tv_sec + (double) tv.tv_usec / 1000000;
+    const double seconds = (double) tv.tv_usec / 1000000 + tv.tv_sec;
     return seconds;
 }
 
 void populate_matrix(matrix A) {
     srand(10);
-    constexpr double rand_max = 1;
-    constexpr double rand_min = 0;
-    constexpr double rand_range = rand_max - rand_min;
+    const double rand_max = 1;
+    const double rand_min = 0;
+    const double rand_range = rand_max - rand_min;
     for (unsigned int i = 0; i < A.N; i++) {
         for (unsigned int j = 0; j < A.N; j++) {
             matrix(A, i, j) = rand_min + rand_range * ((double) rand() / RAND_MAX);
@@ -138,7 +138,7 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
     }
 
     // M1 = (A11 + A22) * (B11 + B22)
-#pragma omp task depend(out: M[0]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[0]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_add(S[0], A11, A22);
         matrix_add(T[0], B11, B22);
@@ -146,35 +146,35 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
     }
 
     // M2 = (A21 + A22) * B11    Note: T2 = B11, no T buffer needed
-#pragma omp task depend(out: M[1]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[1]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_add(S[1], A21, A22);
         strassen_multiply_recursive(M[1], S[1], B11, depth + 1);
     }
 
     // M3 = A11 * (B12 - B22)    Note: S2 = A11, no S buffer needed
-#pragma omp task depend(out: M[2]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[2]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_subtract(T[1], B12, B22);
         strassen_multiply_recursive(M[2], A11, T[1], depth + 1);
     }
 
     // M4 = A22 * (B21 - B11)    Note: S4 = A22 directly, no S buffer needed
-#pragma omp task depend(out: M[3]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[3]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_subtract(T[2], B21, B11);
         strassen_multiply_recursive(M[3], A22, T[2], depth + 1);
     }
 
     // M5 = (A11 + A12) * B22    Note: T5 = B22 directly, no T buffer needed
-#pragma omp task depend(out: M[4]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[4]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_add(S[2], A11, A12);
         strassen_multiply_recursive(M[4], S[2], B22, depth + 1);
     }
 
     // M6 = (A21 - A11) * (B11 + B12)
-#pragma omp task depend(out: M[5]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[5]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_subtract(S[3], A21, A11);
         matrix_add(T[3], B11, B12);
@@ -182,7 +182,7 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
     }
 
     // M7 = (A12 - A22) * (B21 + B22)
-#pragma omp task depend(out: M[6]) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(out: M[6]) final(depth >= MAX_PARALLEL_DEPTH)
     {
         matrix_subtract(S[4], A12, A22);
         matrix_add(T[4], B21, B22);
@@ -190,7 +190,7 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
     }
 
     // Assemble temporary matrix products in matrix C's sub-matrices
-#pragma omp task depend(in: M[0], M[3], M[4], M[6]) depend(out: C11) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(in: M[0], M[3], M[4], M[6]) depend(out: C11) final(depth >= MAX_PARALLEL_DEPTH)
     {
         double *restrict c11_data = C11.data;
         const double *restrict m1_data = M[0].data;
@@ -209,13 +209,13 @@ void strassen_multiply_recursive(matrix C, matrix A, matrix B, unsigned int dept
         }
     }
 
-#pragma omp task depend(in: M[2], M[4]) depend(out: C12) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(in: M[2], M[4]) depend(out: C12) final(depth >= MAX_PARALLEL_DEPTH)
     matrix_add(C12, M[2], M[4]);
 
-#pragma omp task depend(in: M[1], M[3]) depend(out: C21) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(in: M[1], M[3]) depend(out: C21) final(depth >= MAX_PARALLEL_DEPTH)
     matrix_add(C21, M[1], M[3]);
 
-#pragma omp task depend(in: M[0], M[1], M[2], M[5]) depend(out: C22) final(depth >= MAX_RECURSION_DEPTH)
+#pragma omp task depend(in: M[0], M[1], M[2], M[5]) depend(out: C22) final(depth >= MAX_PARALLEL_DEPTH)
     {
         double *restrict c22_data = C22.data;
         const double *restrict m1_data = M[0].data;
